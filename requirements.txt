@@ -1,0 +1,45 @@
+# Tower AI Enterprise Platform v5.0
+# Phase 1 Enterprise Upgrade — requirements
+
+# ── Web framework ─────────────────────────────────────────────────────────────
+fastapi==0.115.12
+uvicorn[standard]==0.34.2
+
+# ── Database ──────────────────────────────────────────────────────────────────
+sqlalchemy==2.0.41
+psycopg2-binary==2.9.10
+alembic==1.16.4
+
+# ── Auth ──────────────────────────────────────────────────────────────────────
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+
+# ── Encryption (Phase 1 NEW — AES-256-GCM replaces XOR) ──────────────────────
+cryptography==42.0.8
+
+# ── Validation & config ───────────────────────────────────────────────────────
+pydantic==2.11.5
+pydantic-settings==2.9.1
+pydantic[email]==2.11.5
+
+# ── Environment ───────────────────────────────────────────────────────────────
+python-dotenv==1.1.0
+
+# ── HTTP client ───────────────────────────────────────────────────────────────
+httpx==0.28.1
+requests==2.32.3
+
+# ── AI Providers ──────────────────────────────────────────────────────────────
+anthropic==0.49.0
+groq==0.13.1
+openai==1.75.0
+google-generativeai==0.8.4
+
+# ── File processing ───────────────────────────────────────────────────────────
+python-multipart==0.0.12
+PyPDF2==3.0.1
+python-docx==1.1.2
+
+# ── Testing ───────────────────────────────────────────────────────────────────
+pytest==8.3.3
+pytest-asyncio==0.24.0
