@@ -1,0 +1,195 @@
+# =========================
+
+# Python
+
+# =========================
+
+**pycache**/
+*.py[cod]
+*$py.class
+
+# Virtual Environments
+
+.venv/
+venv/
+env/
+ENV/
+
+# Python Build
+
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Testing
+
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Type Checking
+
+.mypy_cache/
+.pyre/
+.ruff_cache/
+
+# =========================
+
+# Environment Variables
+
+# =========================
+
+.env
+.env.*
+!.env.example
+
+# Secrets
+
+secrets/
+*.pem
+*.key
+*.crt
+
+# =========================
+
+# IDE
+
+# =========================
+
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+
+# Logs
+
+# =========================
+
+logs/
+*.log
+
+# =========================
+
+# Database
+
+# =========================
+
+*.db
+*.sqlite3
+
+# Alembic
+
+alembic/versions/*.pyc
+
+# =========================
+
+# Uploads
+
+# =========================
+
+uploads/
+storage/
+temp/
+tmp/
+
+# MinIO local data
+
+minio-data/
+
+# =========================
+
+# AI / ML
+
+# =========================
+
+models/
+checkpoints/
+weights/
+*.pt
+*.pth
+*.onnx
+*.ckpt
+
+# Vector DB Dumps
+
+chroma/
+faiss/
+qdrant_data/
+
+# =========================
+
+# Node / React Frontend
+
+# =========================
+
+node_modules/
+.next/
+.nuxt/
+dist/
+build/
+coverage/
+
+# npm
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# =========================
+
+# OS Files
+
+# =========================
+
+.DS_Store
+Thumbs.db
+
+# =========================
+
+# Terraform
+
+# =========================
+
+.terraform/
+*.tfstate
+*.tfstate.*
+
+# =========================
+
+# Docker
+
+# =========================
+
+docker-compose.override.yml
+
+# =========================
+
+# Supabase
+
+# =========================
+
+.supabase/
+
+# =========================
+
+# Generated Reports
+
+# =========================
+
+reports/
+exports/
+backups/
+
+# =========================
+
+# API Keys
+
+# =========================
+
+.env.production
+.env.local
+.env.development
+.env.staging
