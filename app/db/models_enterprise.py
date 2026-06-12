@@ -21,7 +21,7 @@ import uuid
 
 from sqlalchemy import (
     Boolean, Column, DateTime, ForeignKey,
-    Index, Integer, Numeric, String, Text,
+    Index, Integer, Numeric, JSON, String, Text,
     UniqueConstraint, Enum as SAEnum
 )
 from sqlalchemy.dialects.postgresql import UUID
@@ -296,4 +296,107 @@ class PrivilegedAccessLog(Base):
         Index("ix_priv_access_employee_id",  "employee_id"),
         Index("ix_priv_access_org_id",       "organization_id"),
         Index("ix_priv_access_timestamp",    "timestamp"),
+    )
+
+
+# ── APPEND THIS TO THE BOTTOM OF app/db/models_enterprise.py ──────────────
+
+# =============================================================================
+# SUBSCRIPTION MANAGEMENT — Phase 1 SaaS
+# =============================================================================
+
+PLAN_TIERS = ("free", "pro", "enterprise")
+
+SUBSCRIPTION_STATUSES = (
+    "active",
+    "trialing",
+    "past_due",
+    "suspended",
+    "cancelled",
+    "expired",
+)
+
+
+# ─────────────────────────────────────────────────────────────
+# SUBSCRIPTION PLANS
+# Defined by Super Admin. Org admins cannot create plans.
+# ─────────────────────────────────────────────────────────────
+class SubscriptionPlan(Base):
+    __tablename__ = "subscription_plans"
+
+    id                    = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    name                  = Column(String(100), nullable=False, unique=True)   # "Free", "Pro", "Enterprise"
+    tier                  = Column(SAEnum(*PLAN_TIERS, name="plan_tier_enum"), nullable=False)
+    description           = Column(Text, nullable=True)
+    price_monthly_usd     = Column(Numeric(10, 2), nullable=False, default=0)
+    price_yearly_usd      = Column(Numeric(10, 2), nullable=True)              # yearly discount
+
+    # Hard limits enforced at runtime
+    max_users             = Column(Integer, nullable=True)                     # None = unlimited
+    max_teams             = Column(Integer, nullable=True)
+    max_departments       = Column(Integer, nullable=True)
+    monthly_token_quota   = Column(Integer, nullable=True)                     # None = unlimited
+    monthly_request_quota = Column(Integer, nullable=True)
+    max_api_keys          = Column(Integer, nullable=True)
+
+    # Feature flags
+    allowed_providers     = Column(JSON, nullable=False, default=list)         # ["groq","openai",...]
+    features              = Column(JSON, nullable=False, default=dict)         # {"kb": true, "audit": true, ...}
+
+    is_active             = Column(Boolean, nullable=False, default=True)
+    is_public             = Column(Boolean, nullable=False, default=True)      # visible in pricing UI
+    created_at            = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at            = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    __table_args__ = (
+        Index("ix_subscription_plans_tier",      "tier"),
+        Index("ix_subscription_plans_is_active", "is_active"),
+    )
+
+
+# ─────────────────────────────────────────────────────────────
+# SUBSCRIPTIONS
+# One active subscription per organization.
+# ─────────────────────────────────────────────────────────────
+class Subscription(Base):
+    __tablename__ = "subscriptions"
+
+    id              = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    organization_id = Column(UUID(as_uuid=True), ForeignKey("organizations.id"), nullable=False, unique=True)
+    plan_id         = Column(UUID(as_uuid=True), ForeignKey("subscription_plans.id"), nullable=False)
+
+    status          = Column(
+        SAEnum(*SUBSCRIPTION_STATUSES, name="subscription_status_enum"),
+        nullable=False,
+        default="active",
+    )
+
+    # Billing period
+    current_period_start = Column(DateTime(timezone=True), nullable=False)
+    current_period_end   = Column(DateTime(timezone=True), nullable=False)
+
+    # Usage limits for THIS billing cycle (copied from plan at subscription time,
+    # allows custom overrides per org without touching the plan)
+    token_quota_override   = Column(Integer, nullable=True)    # None = use plan default
+    request_quota_override = Column(Integer, nullable=True)
+    user_limit_override    = Column(Integer, nullable=True)
+
+    # Lifecycle tracking
+    trial_ends_at          = Column(DateTime(timezone=True), nullable=True)
+    cancelled_at           = Column(DateTime(timezone=True), nullable=True)
+    suspended_at           = Column(DateTime(timezone=True), nullable=True)
+    suspension_reason      = Column(Text, nullable=True)
+
+    # Who managed it last
+    assigned_by            = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=True)
+    notes                  = Column(Text, nullable=True)        # internal Super Admin notes
+
+    created_at             = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at             = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    __table_args__ = (
+        Index("ix_subscriptions_org_id",    "organization_id"),
+        Index("ix_subscriptions_plan_id",   "plan_id"),
+        Index("ix_subscriptions_status",    "status"),
+        Index("ix_subscriptions_period_end","current_period_end"),
     )
