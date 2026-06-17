@@ -46,8 +46,8 @@ from sqlalchemy.orm import Session
 
 from app.db.models import User
 from app.db.models_privacy import (
+    ACCESS_DECISION,           # noqa: F401 — re-exported for convenience
     DATA_CATEGORIES,
-    AccessDecision,           # noqa: F401 — re-exported for convenience
     ExportControlLog,
     PrivacySettings,
     SuperAdminAccessBlock,

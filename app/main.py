@@ -1,12 +1,10 @@
 """
-main.py - Tower AI Enterprise Platform v5.3 (Phase 3 Routing Governance)
+main.py - Tower AI Enterprise Platform v5.7 (Phase 7 Security Operations Center)
 
-What changed from v5.0:
-  - Added /routing/rules, /routing/logs, /routing/feedback, /routing/analytics, /routing/dashboard
-  - Added /routing/categories (prompt taxonomy)
-  - Routing governance models registered for create_all()
-  - Prompt categories seeded at startup
-  - All v5.0 routers preserved, no endpoints removed
+What changed from v5.6:
+  - Added /security/logins, /security/mfa, /security/tokens, /security/sessions
+  - Security models registered for create_all()
+  - All prior routers preserved, no endpoints removed
 """
 
 import logging
@@ -40,8 +38,17 @@ from app.api.billing         import router as billing_router
 # ── Phase 3 Routing Governance Router ────────────────────────────────────────
 from app.api.routing_governance import router as routing_governance_router
 
-# ── Phase 4 Executive Analytics Router (NEW) ──────────────────────────────────
+# ── Phase 4 Executive Analytics Router ───────────────────────────────────────
 from app.api.analytics import router as analytics_router
+
+# ── Phase 5 Privacy Enforcement Router ───────────────────────────────────────
+from app.api.privacy import router as privacy_router
+
+# ── Phase 6 Support Access Workflow Router ────────────────────────────────────
+from app.api.support import router as support_router
+
+# ── Phase 7 Security Operations Center Router (NEW) ───────────────────────────
+from app.api.security import router as security_router
 
 # ── DB ────────────────────────────────────────────────────────────────────────
 from app.db.database import engine, Base, SessionLocal
@@ -50,6 +57,9 @@ from app.db import models_enterprise     # Phase 1 models  # noqa: F401
 from app.db import models_billing        # Phase 2 models  # noqa: F401
 from app.db import models_routing        # Phase 3 models  # noqa: F401
 from app.db import models_analytics      # Phase 4 models  # noqa: F401
+from app.db import models_privacy        # Phase 5 models  # noqa: F401
+from app.db import models_support        # Phase 6 models  # noqa: F401
+from app.db import models_security       # Phase 7 models  # noqa: F401
 
 # ── Seed services ─────────────────────────────────────────────────────────────
 from app.services.rbac              import seed_roles_and_permissions
@@ -76,9 +86,9 @@ except Exception as e:
 
 app = FastAPI(
     title="Tower AI — Enterprise Platform",
-    version="5.4.0",
+    version="5.7.0",
     description=(
-        "Unified AI Platform v5.4 — Phase 4 Executive Analytics.\n\n"
+        "Unified AI Platform v5.7 — Phase 7 Security Operations Center.\n\n"
         "**Control Tower:** `/auth` `/users` `/usage` `/admin` `/sessions`\n\n"
         "**AI Gateway:** `/chat` (smart routing, escalation, dept/budget aware)\n\n"
         "**AI Router:** `/route` `/ai/route` `/workspace` `/models` `/stats`\n\n"
@@ -93,7 +103,10 @@ app = FastAPI(
         "**Subscriptions:** `/subscriptions` (plans & subscription management)\n\n"
         "**Billing:** `/billing/invoices` `/billing/payments` `/billing/dashboard`\n\n"
         "**Routing Governance:** `/routing/rules` `/routing/logs` `/routing/feedback` `/routing/analytics`\n\n"
-        "**Executive Analytics:** `/analytics/platform` `/analytics/providers` `/analytics/organizations` `/analytics/dashboard` (NEW)\n\n"
+        "**Executive Analytics:** `/analytics/platform` `/analytics/providers` `/analytics/organizations` `/analytics/dashboard`\n\n"
+        "**Privacy & Data Governance:** `/privacy/settings` `/privacy/policies` `/privacy/export-logs` `/privacy/super-admin-blocks`\n\n"
+        "**Support Access Workflow:** `/support/request` `/support/approve` `/support/revoke` `/support/history`\n\n"
+        "**Security Operations Center:** `/security/logins` `/security/mfa` `/security/tokens` `/security/sessions` (NEW)\n\n"
     ),
 )
 
@@ -134,6 +147,15 @@ app.include_router(routing_governance_router)
 # ── Phase 4 executive analytics router ───────────────────────────────────────
 app.include_router(analytics_router)
 
+# ── Phase 5 privacy enforcement router ───────────────────────────────────────
+app.include_router(privacy_router)
+
+# ── Phase 6 support access workflow router ───────────────────────────────────
+app.include_router(support_router)
+
+# ── Phase 7 security operations center router ────────────────────────────────
+app.include_router(security_router)
+
 # ── Frontend SPA ──────────────────────────────────────────────────────────────
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
 if FRONTEND_DIR.exists():
@@ -144,8 +166,8 @@ if FRONTEND_DIR.exists():
 @app.get("/", tags=["General"])
 def home():
     return {
-        "message": "Tower AI Enterprise Platform v5.3",
-        "phase":   "Phase 3 Routing Governance",
+        "message": "Tower AI Enterprise Platform v5.7",
+        "phase":   "Phase 7 Security Operations Center",
         "docs":    "/docs",
         "services": {
             "control_tower":       ["/auth", "/users", "/usage", "/admin", "/sessions"],
@@ -160,7 +182,7 @@ def home():
             "audit":               ["/audit", "/audit/privileged"],
             "subscriptions":       ["/subscriptions/plans", "/subscriptions", "/subscriptions/dashboard"],
             "billing":             ["/billing/invoices", "/billing/payments", "/billing/dashboard"],
-            "routing_governance":  [                          # Phase 3
+            "routing_governance":  [
                 "/routing/rules",
                 "/routing/logs",
                 "/routing/feedback",
@@ -168,7 +190,7 @@ def home():
                 "/routing/dashboard",
                 "/routing/categories",
             ],
-            "executive_analytics": [                          # Phase 4 — NEW
+            "executive_analytics": [
                 "/analytics/platform",
                 "/analytics/providers",
                 "/analytics/organizations",
@@ -177,6 +199,24 @@ def home():
                 "/analytics/dashboard",
                 "/analytics/widgets",
                 "/analytics/snapshots",
+            ],
+            "privacy":             [
+                "/privacy/settings",
+                "/privacy/policies",
+                "/privacy/export-logs",
+                "/privacy/super-admin-blocks",
+            ],
+            "support_access":      [
+                "/support/request",
+                "/support/approve",
+                "/support/revoke",
+                "/support/history",
+            ],
+            "security":            [                          # Phase 7 — NEW
+                "/security/logins",
+                "/security/mfa",
+                "/security/tokens",
+                "/security/sessions",
             ],
         },
     }
@@ -187,9 +227,9 @@ def health():
     return {
         "status":  "healthy",
         "service": "tower_ai_enterprise",
-        "version": "5.4.0",
-        "phase":   "phase4_executive_analytics",
+        "version": "5.7.0",
+        "phase":   "phase7_security_operations_center",
     }
 
 
-logger.info("Tower AI Enterprise Platform v5.4 — all routes registered.")
+logger.info("Tower AI Enterprise Platform v5.7 — all routes registered.")
